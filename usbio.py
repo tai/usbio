@@ -54,15 +54,20 @@ def main(opt):
   if len(opt.args) > 0:
     val = int(opt.args[0], 0)
 
-    # inverted mode
-    if opt.invert:
-      val ^= 0xFFFF
-
     # preserve current state in single-pin mode
     if opt.pin >= 0:
       curr = get_state(hd)
-      mask = ((1 << opt.pin) ^ 0xFFFF) & 0xFFFF
-      val = (curr & mask) | ((1 << opt.pin) if val else 0)
+      mask = 1 << opt.pin
+      if opt.invert:
+        val = 0 if val else 1
+      if val:
+        val = curr | mask
+      else:
+        val = curr & (0xFFFF ^ mask)
+
+    else:
+      if opt.invert:
+        val ^= 0xFFFF
 
     # update state
     set_state(hd, val)
