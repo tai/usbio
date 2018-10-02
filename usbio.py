@@ -9,6 +9,12 @@ import logging
 from argparse import ArgumentParser
 from IPython import embed
 
+# ref: http://fexx.s22.xrea.com/usbio/spec-ja.html
+CMD_WRITE_PORT0 = 0x01
+CMD_WRITE_PORT1 = 0x02
+CMD_READ_PORT0 = 0x03
+CMD_READ_PORT1 = 0x04
+
 def usage():
   p = os.path.basename(sys.argv[0])
   print("""
@@ -37,12 +43,28 @@ Example:
   sys.exit(0)
 
 def get_state(hd):
-  ret = hd.read(4)
-  val = (ret[3] << 8) | ret[1]
-  return val
+  cmd = bytearray([CMD_READ_PORT0])
+  hd.write(cmd)
+  time.sleep(0.3)
+
+  lo = hd.read(8)
+  time.sleep(0.3)
+
+  cmd = bytearray([CMD_READ_PORT1])
+  hd.write(cmd)
+  time.sleep(0.3)
+
+  hi = hd.read(8)
+  time.sleep(0.3)
+
+  return (hi[1] << 8) | lo[1]
 
 def set_state(hd, val):
-  cmd = bytearray([0x01, 0xFF & val, 0x02, 0xFF & (val >> 8)])
+  cmd = bytearray([CMD_WRITE_PORT0, 0xFF & val])
+  hd.write(cmd)
+  time.sleep(0.3)
+
+  cmd = bytearray([CMD_WRITE_PORT1, 0xFF & (val >> 8)])
   hd.write(cmd)
   time.sleep(0.3)
 
