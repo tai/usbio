@@ -43,19 +43,21 @@ Example:
   sys.exit(0)
 
 def get_state(hd):
-  cmd = bytearray([CMD_READ_PORT0])
+  cmd_key = 1 # any non-zero value
+  cmd = bytearray([CMD_READ_PORT0, 0, 0, 0, 0, 0, 0, cmd_key])
   hd.write(cmd)
-  time.sleep(0.3)
+  
+  for i in range(100):
+    lo = hd.read(8)
+    if lo[7] == cmd_key: break
 
-  lo = hd.read(8)
-  time.sleep(0.3)
-
-  cmd = bytearray([CMD_READ_PORT1])
+  cmd_key = 2 # any non-zero value
+  cmd = bytearray([CMD_READ_PORT1, 0, 0, 0, 0, 0, 0, cmd_key])
   hd.write(cmd)
-  time.sleep(0.3)
 
-  hi = hd.read(8)
-  time.sleep(0.3)
+  for i in range(100):
+    hi = hd.read(8)
+    if hi[7] == cmd_key: break
 
   return (hi[1] << 8) | lo[1]
 
